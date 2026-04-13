@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>공감봇 byungjae 💛 | 그란데클립</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+      background: linear-gradient(160deg, #a78bfa 0%, #60a5fa 50%, #34d399 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .top-label {
+      color: rgba(255,255,255,0.85);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .phone-frame {
+      width: 100%;
+      max-width: 420px;
+      height: min(88vh, 820px);
+      background: #c9d5e0;
+      border-radius: 28px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    /* ─── HEADER ─── */
+    .chat-header {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #a855f7 100%);
+      padding: 14px 18px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .back-btn {
+      font-size: 20px;
+      cursor: pointer;
+      opacity: 0.85;
+    }
+
+    .bot-avatar-wrap {
+      position: relative;
+    }
+
+    .bot-avatar {
+      width: 42px;
+      height: 42px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .online-dot {
+      position: absolute;
+      bottom: 1px;
+      right: 1px;
+      width: 11px;
+      height: 11px;
+      background: #4ade80;
+      border: 2px solid #7c3aed;
+      border-radius: 50%;
+      animation: pulse-green 2s infinite;
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: 0.7; }
+    }
+
+    .bot-info { flex: 1; }
+    .bot-info h1 { font-size: 15px; font-weight: 700; }
+    .bot-info p  { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+
+    .header-icons { font-size: 18px; opacity: 0.8; cursor: pointer; }
+
+    /* ─── MESSAGES ─── */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #dce7f0;
+    }
+
+    .chat-messages::-webkit-scrollbar { width: 3px; }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.15);
+      border-radius: 2px;
+    }
+
+    .date-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 6px 0;
+    }
+
+    .date-badge span {
+      font-size: 11px;
+      color: #777;
+      background: rgba(255,255,255,0.55);
+      padding: 3px 12px;
+      border-radius: 12px;
+      backdrop-filter: blur(4px);
+    }
+
+    .msg-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 7px;
+      animation: popIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .msg-row.user { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 34px;
+      height: 34px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .msg-col {
+      display: flex;
+      flex-direction: column;
+      max-width: 74%;
+      gap: 1px;
+    }
+
+    .msg-row.user .msg-col { align-items: flex-end; }
+
+    .msg-name {
+      font-size: 11px;
+      color: #555;
+      margin-bottom: 3px;
+      padding-left: 3px;
+      font-weight: 600;
+    }
+
+    .bubble-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .msg-row.user .bubble-row { flex-direction: row-reverse; }
+
+    .bubble {
+      padding: 10px 13px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.6;
+      word-break: break-word;
+      max-width: 100%;
+      position: relative;
+    }
+
+    .bot .bubble {
+      background: white;
+      border-top-left-radius: 5px;
+      color: #1c1c1e;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .user .bubble {
+      background: #fee500;
+      border-top-right-radius: 5px;
+      color: #1c1c1e;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .bubble-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-end;
+      gap: 2px;
+      padding-bottom: 3px;
+    }
+
+    .read-cnt {
+      font-size: 10px;
+      color: #f59e0b;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .msg-time {
+      font-size: 10px;
+      color: #999;
+      white-space: nowrap;
+    }
+
+    /* ─── TYPING ─── */
+    .typing-bubble {
+      background: white;
+      padding: 12px 16px;
+      border-radius: 18px;
+      border-top-left-radius: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .tdot {
+      width: 7px;
+      height: 7px;
+      background: #bbb;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+    .tdot:nth-child(2) { animation-delay: 0.18s; }
+    .tdot:nth-child(3) { animation-delay: 0.36s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.55; }
+      30%            { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* ─── SUGGESTIONS ─── */
+    .suggestions {
+      padding: 8px 10px 6px;
+      background: rgba(220,231,240,0.95);
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      border-top: 1px solid rgba(0,0,0,0.07);
+      flex-shrink: 0;
+    }
+
+    .suggestions::-webkit-scrollbar { display: none; }
+
+    .chip {
+      flex-shrink: 0;
+      padding: 6px 13px;
+      background: rgba(255,255,255,0.85);
+      border: 1.5px solid #c4b5fd;
+      border-radius: 20px;
+      font-size: 12px;
+      color: #6d28d9;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      font-family: inherit;
+      font-weight: 600;
+    }
+
+    .chip:hover  { background: #7c3aed; color: white; border-color: #7c3aed; }
+    .chip:active { transform: scale(0.95); }
+
+    /* ─── INPUT ─── */
+    .chat-input-area {
+      background: rgba(245,247,250,0.98);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-top: 1px solid rgba(0,0,0,0.07);
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      border: 1.5px solid #d1d5db;
+      border-radius: 22px;
+      padding: 10px 16px;
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s, background 0.2s;
+      background: white;
+    }
+
+    .chat-input:focus { border-color: #7c3aed; }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #4f46e5, #a855f7);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(124,58,237,0.4);
+    }
+
+    .send-btn:hover  { transform: scale(1.1); box-shadow: 0 4px 12px rgba(124,58,237,0.5); }
+    .send-btn:active { transform: scale(0.93); }
+
+    .send-btn svg { width: 17px; height: 17px; fill: white; }
+
+    /* ─── CONFETTI (success) ─── */
+    .confetti-piece {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: fall 2.5s ease-in forwards;
+    }
+
+    @keyframes fall {
+      0%   { transform: translateY(-10px) rotate(0deg);   opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ─── REACTION bubble ─── */
+    .reaction-bubble {
+      font-size: 22px;
+      animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      display: inline-block;
+      padding: 6px 10px;
+      background: white;
+      border-radius: 16px;
+      border-top-left-radius: 5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      line-height: 1.2;
+    }
+
+    /* Mobile full-screen */
+    @media (max-width: 460px) {
+      body { padding: 0; background: #dce7f0; }
+      .phone-frame {
+        max-width: 100%;
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .top-label { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-label">GRANDECLIP ✦ 전담 공감봇</div>
+
+<div class="phone-frame">
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="back-btn">‹</div>
+    <div class="bot-avatar-wrap">
+      <div class="bot-avatar">🙋‍♂️</div>
+      <div class="online-dot"></div>
+    </div>
+    <div class="bot-info">
+      <h1>공감봇 byungjae</h1>
+      <p>그란데클립 전담 공감러 · 항상 내 편</p>
+    </div>
+    <div class="header-icons">⋯</div>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages" id="chatMessages">
+    <div class="date-badge"><span id="todayLabel">오늘</span></div>
+
+    <!-- Welcome message — time set by JS -->
+    <div class="msg-row bot" id="welcomeMsg">
+      <div class="msg-avatar">🙋‍♂️</div>
+      <div class="msg-col">
+        <div class="msg-name">공감봇 byungjae</div>
+        <div class="bubble-row">
+          <div class="bubble">
+            안녕하세요!!! 저 공감봇 byungjae입니다 🎉<br><br>
+            그란데클립 여러분의 모든 말에 <strong>무조건</strong> 공감해드리는 전담 공감러예요!!<br><br>
+            기쁜 일, 슬픈 일, 억울한 일, 자랑하고 싶은 일... 뭐든 다 말씀해보세요.<br>
+            저 절대 반박 안 해요!! 그냥 다 들어드릴게요 👂👂
+          </div>
+          <div class="bubble-meta">
+            <span class="msg-time" id="welcomeTime"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick chips -->
+  <div class="suggestions">
+    <button class="chip" onclick="quickSend('😤 오늘 진짜 너무 힘들었어')">😤 너무 힘들었어</button>
+    <button class="chip" onclick="quickSend('😭 억울한 일이 있어')">😭 억울해</button>
+    <button class="chip" onclick="quickSend('🎉 나 오늘 진짜 잘됐어!!!')">🎉 잘됐어!</button>
+    <button class="chip" onclick="quickSend('😴 너무 지치고 피곤해')">😴 너무 피곤해</button>
+    <button class="chip" onclick="quickSend('😡 진짜 열받는 일이 있었어')">😡 열받아</button>
+    <button class="chip" onclick="quickSend('😢 너무 슬퍼')">😢 슬퍼</button>
+  </div>
+
+  <!-- Input -->
+  <div class="chat-input-area">
+    <input
+      class="chat-input"
+      id="chatInput"
+      type="text"
+      placeholder="고민을 털어놓으세요... 다 공감해드려요 💜"
+      autocomplete="off"
+    />
+    <button class="send-btn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+//  RESPONSE BANK
+// ──────────────────────────────────────────────
+const R = {
+  tired: [
+    "아 진짜요?? 저 같았으면 그 자리에서 바로 드러누웠을 것 같은데요 진짜로. 근데 그럼에도 여기까지 버텨오신 거잖아요. 솔직히 대단하신 거예요.",
+    "와... 듣는 것만으로도 제가 숨이 턱 막히는 느낌이에요. 그 지침이 느껴지거든요. 많이 쌓이셨죠 진짜. 충분히 힘드실 만해요.",
+    "아니 그 정도면 몸이 이미 한계라고 신호 보내는 거 아닌가요?? 솔직히 좀 쉬셔야 해요. 제가 걱정돼서 드리는 말이에요. 진짜로요.",
+    "맞아요 맞아요!! 피곤한 건 느끼는 사람이 제일 잘 알잖아요. 남들이 뭐라 해도 본인이 힘들다면 진짜 힘든 거예요. 제가 다 인정해드려요.",
+    "아이고... 저 지금 이 이야기 들으면서 마음이 무거워지네요. 근데 이렇게 말씀해주셔서 좀 나아지셨으면 좋겠어요. 정말로요.",
+    "아 솔직히 그게 지치는 게 너무 당연한 상황이에요. 오히려 안 지쳤으면 그게 더 이상한 거예요. 진짜진짜 많이 고생하셨다.",
+  ],
+  angry: [
+    "아니 그게 말이 돼요?? 저 지금 진짜 제 일처럼 열받는데요??? 그 상황에서 참으신 것 자체가 이미 성인군자급이에요 솔직히.",
+    "와... 저 지금 손이 떨려요 진짜로. 그런 일이 있었다고요?? 진짜 너무한 거 아닌가요!! 저 같았으면 그 자리에서 바로 폭발했을 것 같은데요.",
+    "아니 세상에 그런 사람이 다 있어요? 진짜 어이가 없네요 저도. 그 상황에서 어떻게 참으셨어요?? 저 그 인내심 배우고 싶어요 진짜로.",
+    "맞아요!! 화나는 거 너무 당연한 거예요. 오히려 안 화났으면 그게 더 이상한 거예요. 그 열받음 완전 정당해요.",
+    "아 진짜 들을수록 저도 같이 화가 나네요. 근데 그 상황에서 여기 와서 이렇게 말씀해주시는 게... 진짜 속이 많이 답답하셨겠다.",
+    "아 이거 진짜 저 대신 화내도 되나요?? 진짜 너무하다 너무해. 그게 어떻게 그럴 수가 있어요. 본인이 제일 힘드셨을 텐데.",
+  ],
+  sad: [
+    "아... 그 말 듣는 순간 제 마음도 같이 뭔가 내려앉는 느낌이에요. 진짜 많이 슬프셨겠다. 그 감정 충분히 느끼셔도 돼요.",
+    "와 저 지금 눈물이 나올 것 같아요 솔직히. 그 상황에서 얼마나 힘드셨을까... 저 다 이해해요. 진짜로요.",
+    "아이고... 그게 마음이 얼마나 아팠을까요. 말씀하시면서도 많이 힘드셨죠? 다 괜찮아요, 여기선 다 말씀하셔도 돼요.",
+    "맞아요, 그 상황에서 슬픈 게 너무 당연한 거예요. 아 진짜 저 마음이 울컥하네요. 많이 속상하셨겠다...",
+    "아 진짜 그런 일이 있었구나... 저 지금 이 이야기 듣고 한동안 멍했어요 솔직히. 그 마음이 얼마나 무거우셨을까요.",
+    "그 슬픔이 얼마나 깊으셨으면... 저 지금 뭐라고 위로해야 할지 모르겠는데, 일단 여기 있을게요. 다 들을게요.",
+  ],
+  success: [
+    "아 진짜요?!?!? 대박이에요!! 저 지금 심장이 막 뛰어요!! 진짜 너무 잘됐다!!! 그게 쉬운 게 아닌 거 저 알거든요!!!!",
+    "와와와와!!!! 진짜요?? 솔직히 저 이 소식 들으려고 여기 있었던 것 같아요!! 너무 잘하셨다!! 진짜!!!",
+    "아 이거 진짜 축하드려야 해요!!! 그냥 된 게 아니잖아요, 그동안 얼마나 고생하셨는데요!! 진짜 대단하세요 진짜로!!!",
+    "와 저 소름 돋았어요 지금. 진짜로요. 그게 되는 게 얼마나 어려운 건지 알기 때문에... 진짜 대단하다!!! 축하드려요!!!",
+    "아니 이 소식 들으니까 저도 너무 좋잖아요!! 같이 기뻐해도 되죠?? 진짜 잘됐다!!! 너무너무 잘됐어요!!!",
+    "하... 진짜 이거 들으니까 제가 다 뿌듯해요. 당연히 되셔야 하는 거였어요. 진짜 너무 잘됐다!!!",
+  ],
+  work: [
+    "아 진짜요?? 야근이요?? 저 같았으면 진짜 그 자리에서 키보드 던졌을 것 같은데요. 근데 그래도 하고 계신 거잖아요. 진짜 프로페셔널이신 거예요.",
+    "아니 그 상사분이 진짜... 아 제가 지금 말을 잇지 못하겠어요. 그런 분 밑에서 일하신다고요?? 저 같았으면 진짜 못 버텼을 것 같은데요.",
+    "와 업무가 그렇게 많아요?? 아니 그게 한 사람이 할 수 있는 양이에요?? 저 지금 진짜 화가 나거든요 대신. 너무 불합리한 거 아닌가요.",
+    "맞아요 맞아요. 회사 일은 진짜 끝이 없잖아요. 하면 할수록 더 쏟아지고... 그 악순환 너무 잘 알 것 같아요. 진짜 고생하세요.",
+    "아이고... 그 스트레스가 얼마나 클지. 근데 여기서 이렇게 털어놓으시는 거잖아요. 조금이라도 도움이 됐으면 좋겠어요 저는.",
+    "회사에서 그런 일이 있으셨어요?? 아 진짜 저 들으면서 제 혈압도 올라가는 것 같아요. 그 상황 진짜 너무 공감돼요.",
+  ],
+  relationships: [
+    "아니 그 사람이 왜 그래요?? 저 지금 이해가 전혀 안 되거든요. 그 상황에서 그렇게 행동한다고요?? 진짜 너무한 거 아닌가요.",
+    "와... 인간관계가 진짜 제일 힘든 것 같아요. 일은 어떻게 해도 되는데 사람이 상처를 주면... 아 그게 제일 힘들잖아요. 많이 속상하셨겠다.",
+    "맞아요!! 그 감정 완전 공감해요. 나는 이렇게 대했는데 상대방이 그렇게 나온다면... 아 진짜 억울하죠. 억울한 거 맞아요.",
+    "아 그 사람이 좀 많이 그렇네요 솔직히. 근데 그럼에도 본인이 상처받은 건 진짜 사실이잖아요. 그 마음 충분히 이해해요 저는.",
+    "저 솔직히 그 사람 입장은 하나도 모르겠고요, 지금 여기 계신 분이 힘드시다는 게 제일 중요해요. 어떻게 좀 나아지셨으면 좋겠다...",
+    "아 그 상황에서 본인 감정이 그렇게 드는 게 너무 당연한 거예요. 주변에서 뭐라 해도 본인 느낌이 맞는 거예요.",
+  ],
+  food: [
+    "아 배고프다고요?? 맞아요 배고픈 게 모든 불행의 시작이에요!! 저 같았으면 진짜 아무것도 못 했을 것 같은데요. 뭐라도 드세요!!",
+    "와 그거 맛있겠다!!! 저 지금 침이 고이는 것 같아요 진짜. 음식이 주는 위로가 있잖아요. 잘 드셨어요!!",
+    "아니 그걸 드셨다고요?? 진짜요?? 저 지금 너무 부럽거든요. 맛있는 거 드셨다니까 다행이에요 진짜.",
+    "맞아요 맛있는 거 먹으면 좀 낫잖아요. 그거라도 드신 것 자체가 잘 하신 거예요 진짜. 저 잘됐다 싶어요.",
+  ],
+  grande_clip: [
+    "아 그란데클립이요!! 저 이 팀 너무 좋아요 솔직히. 이렇게 좋은 팀에 계신 거잖아요. 근데 그 안에서도 고민이 있으신 거잖아요. 다 말씀해보세요!!",
+    "와 그란데클립 분이시구나!! 진짜 멋있는 팀에 계신다. 그 팀에서 그런 일이 있으셨다고요?? 저 다 듣겠습니다!!",
+    "아 그란데클립!! 제 전담 팀이잖아요. 뭐든 다 말씀해보세요. 저 여기 항상 있어요. 다 들어드릴게요!!",
+  ],
+  general: [
+    "아 진짜요?? 그게 말이 돼요?? 저 같았으면 진짜 못 버텼을 것 같은데요??",
+    "와... 저 지금 심장이 쿵 내려앉았어요. 진짜로요. 그 상황에서 어떻게 버티셨어요??",
+    "아니 세상에... 제가 다 화가 나네요. 진짜 너무한 거 아닌가요??",
+    "맞아요 맞아요!! 그 느낌 저 완전 이해해요. 근데 그걸 여기다가 말씀해주셔서 진짜 다행이에요.",
+    "아... 그 말 들으니까 저도 마음이 무거워지네요. 많이 힘드셨죠?",
+    "와 진짜요?? 저 지금 이 이야기 듣고 말문이 막혔어요. 그게 어떻게 그런 일이... 아 진짜.",
+    "맞아요!! 본인 감정이 제일 중요한 거예요. 다른 사람이 뭐라 해도 본인이 그렇게 느끼셨다면 그게 맞는 거예요.",
+    "아이고... 그 마음이 얼마나 복잡하셨을까요. 저 다 들을게요, 계속 말씀해주세요.",
+    "진짜요?? 저 지금 머리카락이 곤두서는 것 같아요. 그런 상황이 있었다고요?? 진짜 너무 공감돼요.",
+    "아 솔직히 저는 그 상황에서 그렇게 생각하시는 게 너무 당연한 것 같아요. 오히려 안 그랬으면 이상한 거예요.",
+    "아니 진짜요... 저 잠깐 숨 좀 고를게요. 그게 진짜라고요?? 진짜 너무하다.",
+    "와 저 지금 뭔가 되게 많이 공감이 되거든요. 그 상황 그 느낌 완전 이해해요. 진짜로요.",
+  ],
+};
+
+const FOLLOW_UPS = [
+  "\n\n그래서 그 다음엔 어떻게 됐어요?",
+  "\n\n근데 그 상황에서 주변 반응은 어땠어요?",
+  "\n\n더 말씀하시고 싶은 거 있으면 다 말씀해요, 저 다 듣거든요.",
+  "\n\n혹시 지금은 좀 어떠세요?",
+  "\n\n그래서 본인은 어떻게 하셨어요?",
+  "\n\n그거 들으니까 진짜 저 궁금한 게 생겼는데요... 더 말씀해주실 수 있어요?",
+];
+
+// Extra reaction bubbles (short follow-up)
+const REACTIONS = {
+  tired:   ["😭😭", "진짜 고생많다...", "ㄹㅇ 너무해"],
+  angry:   ["🤯🤯", "아니 진짜!!", "저도 열받아요"],
+  sad:     ["😢😢", "마음이 아프다...", "흑흑"],
+  success: ["🎉🎉🎉", "우와!!!", "축하해요!!!"],
+  work:    ["💀💀", "직장인 공감100%", "진짜 힘드시겠다"],
+  relationships: ["😤", "ㄹㅇ 그 사람이 문제임", "완전 공감"],
+  food:    ["🍔🍕", "저도 배고파요", "부럽다"],
+  grande_clip: ["🔥", "그란데클립 화이팅!!", "최고야"],
+  general: ["ㅇㅇ 맞아", "진짜로요...", "😱", "ㄹㅇ", "공감100"],
+};
+
+const counters = {};
+
+function getCategory(txt) {
+  const t = txt.toLowerCase();
+  if (/힘들|지쳐|지친|힘드|고달|피곤|쓰러질|못하겠|버거워/.test(t)) return 'tired';
+  if (/화나|짜증|열받|빡쳐|미치겠|어이없|황당|열이 받|존나/.test(t)) return 'angry';
+  if (/슬프|울었|울고|눈물|상처|속상|서럽|그리워|보고싶|마음이 아/.test(t)) return 'sad';
+  if (/잘됐|합격|통과|성공|해냈|됐어|잘 됐|대박|뽑혔|붙었|올랐|올라|잘 됨|통과|좋은 일|기쁜/.test(t)) return 'success';
+  if (/야근|회사|상사|직장|업무|일이|일하|일 때문|출근|퇴근|직원|팀장|부장|대리|회의/.test(t)) return 'work';
+  if (/친구|연인|남자친구|여자친구|남친|여친|가족|엄마|아빠|오빠|언니|동생|사람이|사람들|인간관계/.test(t)) return 'relationships';
+  if (/배고프|먹었|맛있|음식|밥|식사|치킨|피자|라면|카페|커피|먹고 싶/.test(t)) return 'food';
+  if (/그란데클립|그란데|grande|grandeclip/.test(t)) return 'grande_clip';
+  return 'general';
+}
+
+function pick(cat) {
+  const pool = R[cat] || R.general;
+  if (!counters[cat]) counters[cat] = 0;
+  const r = pool[counters[cat] % pool.length];
+  counters[cat]++;
+  return r;
+}
+
+function pickReaction(cat) {
+  const pool = REACTIONS[cat] || REACTIONS.general;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function now() {
+  const d = new Date();
+  const h = d.getHours(), m = d.getMinutes().toString().padStart(2,'0');
+  const ap = h < 12 ? '오전' : '오후';
+  return `${ap} ${h % 12 || 12}:${m}`;
+}
+
+// Set welcome time
+document.getElementById('welcomeTime').textContent = now();
+
+let msgCount = 0;
+
+function escape(s) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(s));
+  return d.innerHTML;
+}
+
+function scrollBottom() {
+  const c = document.getElementById('chatMessages');
+  c.scrollTop = c.scrollHeight;
+}
+
+function addMsg(text, isUser, isReaction = false) {
+  const c = document.getElementById('chatMessages');
+  const t = now();
+  const row = document.createElement('div');
+  row.className = `msg-row ${isUser ? 'user' : 'bot'}`;
+
+  if (isUser) {
+    row.innerHTML = `
+      <div class="msg-col">
+        <div class="bubble-row">
+          <div class="bubble-meta">
+            <span class="read-cnt" id="rc-${msgCount}">1</span>
+            <span class="msg-time">${t}</span>
+          </div>
+          <div class="bubble">${escape(text)}</div>
+        </div>
+      </div>`;
+  } else if (isReaction) {
+    row.innerHTML = `
+      <div class="msg-avatar">🙋‍♂️</div>
+      <div class="msg-col">
+        <div class="bubble-row">
+          <span class="reaction-bubble">${escape(text)}</span>
+          <div class="bubble-meta"><span class="msg-time">${t}</span></div>
+        </div>
+      </div>`;
+  } else {
+    row.innerHTML = `
+      <div class="msg-avatar">🙋‍♂️</div>
+      <div class="msg-col">
+        <div class="msg-name">공감봇 byungjae</div>
+        <div class="bubble-row">
+          <div class="bubble">${escape(text).replace(/\n/g,'<br>')}</div>
+          <div class="bubble-meta"><span class="msg-time">${t}</span></div>
+        </div>
+      </div>`;
+  }
+
+  c.appendChild(row);
+  scrollBottom();
+  msgCount++;
+  return row;
+}
+
+function showTyping() {
+  // Clear all unread counts (bot is "reading")
+  document.querySelectorAll('.read-cnt').forEach(el => el.remove());
+
+  const c = document.getElementById('chatMessages');
+  const el = document.createElement('div');
+  el.className = 'msg-row bot';
+  el.id = 'typingRow';
+  el.innerHTML = `
+    <div class="msg-avatar">🙋‍♂️</div>
+    <div class="msg-col">
+      <div class="msg-name">공감봇 byungjae</div>
+      <div class="typing-bubble">
+        <div class="tdot"></div><div class="tdot"></div><div class="tdot"></div>
+      </div>
+    </div>`;
+  c.appendChild(el);
+  scrollBottom();
+}
+
+function hideTyping() {
+  const el = document.getElementById('typingRow');
+  if (el) el.remove();
+}
+
+function launchConfetti() {
+  const colors = ['#fbbf24','#f87171','#34d399','#60a5fa','#a78bfa','#f472b6'];
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.cssText = `
+      left:${Math.random()*100}vw;
+      top:-20px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-delay:${Math.random()*0.8}s;
+      width:${6+Math.random()*8}px;
+      height:${6+Math.random()*8}px;
+      border-radius:${Math.random()<0.4?'50%':'3px'};
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 3200);
+  }
+}
+
+function sendMessage() {
+  const inp = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+
+  addMsg(text, true);
+
+  const cat = getCategory(text);
+  const delay1 = 900 + Math.random() * 1200;
+
+  showTyping();
+
+  setTimeout(() => {
+    hideTyping();
+
+    let resp = pick(cat);
+    // Add follow-up ~45% of the time (after first message)
+    if (msgCount > 1 && Math.random() < 0.45) {
+      resp += FOLLOW_UPS[Math.floor(Math.random() * FOLLOW_UPS.length)];
+    }
+
+    addMsg(resp, false);
+
+    if (cat === 'success') launchConfetti();
+
+    // ~40% chance: short reaction bubble after main reply
+    if (Math.random() < 0.4) {
+      setTimeout(() => {
+        addMsg(pickReaction(cat), false, true);
+      }, 700 + Math.random() * 600);
+    }
+  }, delay1);
+}
+
+function quickSend(text) {
+  document.getElementById('chatInput').value = text;
+  sendMessage();
+}
+
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+</script>
+</body>
+</html>
